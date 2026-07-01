@@ -106,7 +106,7 @@
         
         <header class="mb-8 text-center">
             <h1 class="text-3xl md:text-4xl font-bold text-gray-900 mb-2">Decálogo de Evaluación del Diseño de Proyectos ABP</h1>
-            <p class="text-gray-600">Suma y sigue - Educación</p>
+            <p class="text-gray-600">M Suma y sigue - Educación</p>
             <p class="mt-4 text-sm text-gray-500 max-w-2xl mx-auto no-print">Completa los datos de tu proyecto y selecciona el nivel que mejor lo describa en cada criterio. La diana de resultados se actualizará automáticamente al final de la página.</p>
         </header>
 
@@ -141,10 +141,10 @@
                     <h2 class="text-xl font-bold text-gray-800 mb-4 text-center">Gráfico de Resultados</h2>
                     
                     <div id="diana-container" class="relative w-full aspect-square mb-6 flex justify-center items-center">
-                        <!-- Canvas original para la vista web -->
-                        <canvas id="dianaChart"></canvas>
-                        <!-- Imagen estática que se mostrará SOLO al imprimir -->
-                        <img id="print-chart-img" style="display: none; width: 100%; max-width: 600px; height: auto;" alt="Gráfico de Diana" />
+                        <!-- Canvas original para la vista web. Se oculta al imprimir con clases de Tailwind -->
+                        <canvas id="dianaChart" class="print:hidden"></canvas>
+                        <!-- Imagen estática que se actualizará sola y se mostrará SOLO al imprimir -->
+                        <img id="print-chart-img" class="hidden print:block w-full max-w-[600px] h-auto mx-auto" alt="Gráfico de Diana" />
                     </div>
                     
                     <div class="text-center no-print">
@@ -414,7 +414,15 @@
                     responsive: true,
                     maintainAspectRatio: false,
                     animation: {
-                        duration: 500 // Añadido control de duración para facilitar la impresión
+                        duration: 500,
+                        // NUEVO MÉTODO: Cada vez que termina la animación, actualizamos la imagen oculta.
+                        // Así, cuando le des a imprimir, la imagen ya existe y no hay retrasos.
+                        onComplete: function() {
+                            const imgEl = document.getElementById('print-chart-img');
+                            if (imgEl && myChart) {
+                                imgEl.src = myChart.toBase64Image();
+                            }
+                        }
                     },
                     scales: {
                         r: {
@@ -470,46 +478,6 @@
                 myChart.update();
             }
         }
-
-        /* * SOLUCIÓN DE IMPRESIÓN PARA CHART.JS
-         * Al imprimir, los elementos <canvas> a veces se borran o no salen en el PDF.
-         * Lo solucionamos convirtiendo el canvas en una etiqueta <img> estática
-         * justo antes de imprimir, y volvemos al canvas normal al terminar.
-         */
-        window.addEventListener('beforeprint', () => {
-            if (myChart) {
-                const canvasEl = document.getElementById('dianaChart');
-                const imgEl = document.getElementById('print-chart-img');
-                
-                // Forzamos un update sin animaciones para que la imagen se genere perfecta al instante
-                const currentDuration = myChart.options.animation.duration;
-                myChart.options.animation.duration = 0;
-                myChart.update();
-
-                // Convertir el canvas a imagen base64 y asignarlo al tag <img>
-                imgEl.src = myChart.toBase64Image();
-                
-                // Ocultar canvas y mostrar imagen
-                canvasEl.style.display = 'none';
-                imgEl.style.display = 'block';
-
-                // Restaurar la configuración de animación
-                myChart.options.animation.duration = currentDuration;
-            }
-        });
-
-        window.addEventListener('afterprint', () => {
-            const canvasEl = document.getElementById('dianaChart');
-            const imgEl = document.getElementById('print-chart-img');
-            
-            // Restaurar a la vista normal interactiva
-            canvasEl.style.display = 'block';
-            imgEl.style.display = 'none';
-            
-            if (myChart) {
-                myChart.update();
-            }
-        });
 
         window.onload = () => {
             renderRubric();
