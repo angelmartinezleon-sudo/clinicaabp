@@ -1,4 +1,4 @@
-
+<!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
@@ -31,13 +31,53 @@
             .print-break-inside-avoid {
                 break-inside: avoid;
             }
+            
+            /* Anular el grid para la impresión y que todo fluya hacia abajo en bloque */
+            .grid-print-block {
+                display: block !important;
+            }
+            .lg\:col-span-2, .lg\:col-span-1 {
+                width: 100% !important;
+                max-width: 100% !important;
+            }
+
+            /* Estilos para que los inputs parezcan texto normal en el PDF */
+            input[type="text"] {
+                border: none !important;
+                background: transparent !important;
+                box-shadow: none !important;
+                padding: 0 !important;
+                margin: 0 !important;
+                font-weight: 600;
+                color: #1f2937 !important; /* gray-800 */
+                font-size: 1.125rem !important; /* text-lg */
+            }
+            input::placeholder {
+                color: transparent !important; /* Ocultar el placeholder en la impresión */
+            }
+            .datos-label {
+                font-size: 0.875rem !important;
+                color: #6b7280 !important; /* gray-500 */
+                margin-bottom: 0.25rem !important;
+            }
+
             /* Ajustes para que la diana y los resultados se vean bien impresos */
+            #diana-wrapper {
+                position: static !important; /* Quitar sticky */
+                width: 100% !important;
+                box-shadow: none !important;
+                border: none !important;
+                padding: 0 !important;
+                margin-top: 2rem !important;
+                page-break-before: always; /* Forzar salto de página para la diana */
+            }
+            
             #diana-container {
                 width: 100% !important;
-                max-width: 600px !important;
+                max-width: 700px !important;
                 margin: 0 auto;
-                page-break-before: always;
             }
+            
             .rubric-card {
                 border: 1px solid #e5e7eb;
                 box-shadow: none;
@@ -64,13 +104,32 @@
 
     <div class="max-w-6xl mx-auto">
         
-        <header class="mb-10 text-center">
+        <header class="mb-8 text-center">
             <h1 class="text-3xl md:text-4xl font-bold text-gray-900 mb-2">Decálogo de Evaluación del Diseño de Proyectos ABP</h1>
-            <p class="text-gray-600">M Suma y sigue - Educación</p>
-            <p class="mt-4 text-sm text-gray-500 max-w-2xl mx-auto">Selecciona el nivel que mejor describa tu proyecto en cada criterio. La diana de resultados se actualizará automáticamente al final de la página.</p>
+            <p class="text-gray-600">Suma y sigue - Educación</p>
+            <p class="mt-4 text-sm text-gray-500 max-w-2xl mx-auto no-print">Completa los datos de tu proyecto y selecciona el nivel que mejor lo describa en cada criterio. La diana de resultados se actualizará automáticamente al final de la página.</p>
         </header>
 
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <!-- Nueva sección: Datos del Proyecto -->
+        <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200 mb-8 print-break-inside-avoid">
+            <h2 class="text-lg font-bold text-gray-800 mb-4 no-print">Datos del Proyecto</h2>
+            <div class="grid grid-cols-1 md:grid-cols-12 gap-6">
+                <div class="md:col-span-6">
+                    <label class="datos-label block text-sm font-medium text-gray-700 mb-1">Título del Proyecto de ABP</label>
+                    <input type="text" class="w-full border border-gray-300 rounded-lg p-2.5 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors" placeholder="Ej. Salvemos los océanos">
+                </div>
+                <div class="md:col-span-3">
+                    <label class="datos-label block text-sm font-medium text-gray-700 mb-1">Curso</label>
+                    <input type="text" class="w-full border border-gray-300 rounded-lg p-2.5 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors" placeholder="Ej. 3º ESO">
+                </div>
+                <div class="md:col-span-3">
+                    <label class="datos-label block text-sm font-medium text-gray-700 mb-1">Grupo</label>
+                    <input type="text" class="w-full border border-gray-300 rounded-lg p-2.5 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors" placeholder="Ej. A">
+                </div>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 grid-print-block">
             
             <!-- Contenedor de la Rúbrica (Ocupa 2/3 en pantallas grandes) -->
             <div class="lg:col-span-2 space-y-8" id="rubric-container">
@@ -81,8 +140,11 @@
                 <div class="sticky top-8 bg-white p-6 rounded-xl shadow-lg border border-gray-100" id="diana-wrapper">
                     <h2 class="text-xl font-bold text-gray-800 mb-4 text-center">Gráfico de Resultados</h2>
                     
-                    <div id="diana-container" class="relative w-full aspect-square mb-6">
+                    <div id="diana-container" class="relative w-full aspect-square mb-6 flex justify-center items-center">
+                        <!-- Canvas original para la vista web -->
                         <canvas id="dianaChart"></canvas>
+                        <!-- Imagen estática que se mostrará SOLO al imprimir -->
+                        <img id="print-chart-img" style="display: none; width: 100%; max-width: 600px; height: auto;" alt="Gráfico de Diana" />
                     </div>
                     
                     <div class="text-center no-print">
@@ -351,6 +413,9 @@
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
+                    animation: {
+                        duration: 500 // Añadido control de duración para facilitar la impresión
+                    },
                     scales: {
                         r: {
                             angleLines: {
@@ -405,6 +470,46 @@
                 myChart.update();
             }
         }
+
+        /* * SOLUCIÓN DE IMPRESIÓN PARA CHART.JS
+         * Al imprimir, los elementos <canvas> a veces se borran o no salen en el PDF.
+         * Lo solucionamos convirtiendo el canvas en una etiqueta <img> estática
+         * justo antes de imprimir, y volvemos al canvas normal al terminar.
+         */
+        window.addEventListener('beforeprint', () => {
+            if (myChart) {
+                const canvasEl = document.getElementById('dianaChart');
+                const imgEl = document.getElementById('print-chart-img');
+                
+                // Forzamos un update sin animaciones para que la imagen se genere perfecta al instante
+                const currentDuration = myChart.options.animation.duration;
+                myChart.options.animation.duration = 0;
+                myChart.update();
+
+                // Convertir el canvas a imagen base64 y asignarlo al tag <img>
+                imgEl.src = myChart.toBase64Image();
+                
+                // Ocultar canvas y mostrar imagen
+                canvasEl.style.display = 'none';
+                imgEl.style.display = 'block';
+
+                // Restaurar la configuración de animación
+                myChart.options.animation.duration = currentDuration;
+            }
+        });
+
+        window.addEventListener('afterprint', () => {
+            const canvasEl = document.getElementById('dianaChart');
+            const imgEl = document.getElementById('print-chart-img');
+            
+            // Restaurar a la vista normal interactiva
+            canvasEl.style.display = 'block';
+            imgEl.style.display = 'none';
+            
+            if (myChart) {
+                myChart.update();
+            }
+        });
 
         window.onload = () => {
             renderRubric();
