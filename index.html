@@ -137,7 +137,7 @@
             <div class="grid grid-cols-1 md:grid-cols-12 gap-6">
                 <div class="md:col-span-6">
                     <label class="datos-label block text-sm font-medium text-gray-700 mb-1">Título del Proyecto de ABP</label>
-                    <input type="text" class="w-full border border-gray-300 rounded-lg p-2.5 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors" placeholder="Ej. Salvemos los océanos">
+                    <input type="text" id="project-title-input" class="w-full border border-gray-300 rounded-lg p-2.5 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors" placeholder="Ej. Salvemos los océanos">
                 </div>
                 <div class="md:col-span-3">
                     <label class="datos-label block text-sm font-medium text-gray-700 mb-1">Curso</label>
@@ -169,7 +169,7 @@
                     
                     <div class="text-center no-print">
                         <p class="text-sm text-gray-500 mb-4" id="progress-text">0 de 10 criterios evaluados</p>
-                        <button onclick="window.print()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-4 rounded-lg shadow transition duration-200 flex items-center justify-center gap-2">
+                        <button onclick="handlePrint()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-4 rounded-lg shadow transition duration-200 flex items-center justify-center gap-2">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                                 <path fill-rule="evenodd" d="M5 4v3H4a2 2 0 00-2 2v3a2 2 0 002 2h1v2a2 2 0 002 2h6a2 2 0 002-2v-2h1a2 2 0 002-2V9a2 2 0 00-2-2h-1V4a2 2 0 00-2-2H7a2 2 0 00-2 2zm8 0H7v3h6V4zm0 8H7v4h6v-4z" clip-rule="evenodd" />
                             </svg>
@@ -387,7 +387,8 @@
 
         function initChart() {
             const ctx = document.getElementById('dianaChart').getContext('2d');
-            const labels = criteria.map(c => c.title);
+            // Usar solo los números para los bordes de la diana y evitar que se corten los textos
+            const labels = criteria.map(c => c.id.toString());
             const data = new Array(10).fill(0);
 
             myChart = new Chart(ctx, {
@@ -440,8 +441,8 @@
                             pointLabels: {
                                 font: {
                                     family: "'Inter', sans-serif",
-                                    size: 11,
-                                    weight: '500'
+                                    size: 14,
+                                    weight: 'bold'
                                 },
                                 color: '#4b5563'
                             }
@@ -451,6 +452,10 @@
                         legend: { display: false },
                         tooltip: {
                             callbacks: {
+                                title: function(tooltipItems) {
+                                    // Recuperamos el título completo para mostrarlo en el tooltip interactivo
+                                    return criteria[tooltipItems[0].dataIndex].title;
+                                },
                                 label: function(context) {
                                     return `Nivel: ${context.raw}`;
                                 }
@@ -468,6 +473,32 @@
             // Inyecta el array de datos completo y pide dibujar
             myChart.data.datasets[0].data = chartData;
             myChart.update();
+        }
+
+        // Función para gestionar la impresión y cambiar el nombre del PDF
+        function handlePrint() {
+            const titleInput = document.getElementById('project-title-input').value.trim();
+            let suffix = "";
+            
+            if (titleInput) {
+                // Separamos por espacios, ignoramos espacios vacíos y cogemos las 3 primeras palabras
+                const words = titleInput.split(/\s+/).filter(w => w.length > 0).slice(0, 3).join(' ');
+                if (words) {
+                    suffix = ` - ${words}`;
+                }
+            }
+            
+            // Guardamos el título original de la pestaña web
+            const originalTitle = document.title;
+            // Cambiamos el título del documento temporalmente (esto dicta el nombre de archivo del PDF)
+            document.title = `Evaluación ABP${suffix}`;
+            
+            window.print();
+            
+            // Restauramos el título original después de que se abra la ventana de impresión
+            setTimeout(() => {
+                document.title = originalTitle;
+            }, 1000);
         }
 
         // Seguro adicional por si le dan a imprimir muy rápido antes de que acabe la animación
