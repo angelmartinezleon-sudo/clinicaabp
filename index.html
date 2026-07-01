@@ -106,7 +106,7 @@
         
         <header class="mb-8 text-center">
             <h1 class="text-3xl md:text-4xl font-bold text-gray-900 mb-2">Decálogo de Evaluación del Diseño de Proyectos ABP</h1>
-            <p class="text-gray-600">M Suma y sigue - Educación</p>
+            <p class="text-gray-600">Suma y sigue - Educación</p>
             <p class="mt-4 text-sm text-gray-500 max-w-2xl mx-auto no-print">Completa los datos de tu proyecto y selecciona el nivel que mejor lo describa en cada criterio. La diana de resultados se actualizará automáticamente al final de la página.</p>
         </header>
 
@@ -140,11 +140,9 @@
                 <div class="sticky top-8 bg-white p-6 rounded-xl shadow-lg border border-gray-100" id="diana-wrapper">
                     <h2 class="text-xl font-bold text-gray-800 mb-4 text-center">Gráfico de Resultados</h2>
                     
+                    <!-- Eliminada la clase print:hidden y la etiqueta img -->
                     <div id="diana-container" class="relative w-full aspect-square mb-6 flex justify-center items-center">
-                        <!-- Canvas original para la vista web. Se oculta al imprimir con clases de Tailwind -->
-                        <canvas id="dianaChart" class="print:hidden"></canvas>
-                        <!-- Imagen estática que se actualizará sola y se mostrará SOLO al imprimir -->
-                        <img id="print-chart-img" class="hidden print:block w-full max-w-[600px] h-auto mx-auto" alt="Gráfico de Diana" />
+                        <canvas id="dianaChart"></canvas>
                     </div>
                     
                     <div class="text-center no-print">
@@ -414,15 +412,7 @@
                     responsive: true,
                     maintainAspectRatio: false,
                     animation: {
-                        duration: 500,
-                        // NUEVO MÉTODO: Cada vez que termina la animación, actualizamos la imagen oculta.
-                        // Así, cuando le des a imprimir, la imagen ya existe y no hay retrasos.
-                        onComplete: function() {
-                            const imgEl = document.getElementById('print-chart-img');
-                            if (imgEl && myChart) {
-                                imgEl.src = myChart.toBase64Image();
-                            }
-                        }
+                        duration: 500
                     },
                     scales: {
                         r: {
@@ -469,15 +459,29 @@
             });
         }
 
-        function updateChart() {
-            // Reemplazar nulls con 0 para el gráfico
-            const chartData = userScores.map(score => score === null ? 0 : score);
-            
+        /* 
+         * SOLUCIÓN DE IMPRESIÓN MEJORADA
+         * Desactivamos las animaciones antes de imprimir para que el canvas
+         * se renderice de forma síncrona y el navegador lo capture a tiempo.
+         * Ya no usamos una imagen estática extra para evitar duplicados.
+         */
+        window.addEventListener('beforeprint', () => {
             if (myChart) {
-                myChart.data.datasets[0].data = chartData;
+                // Guardamos la duración actual de la animación
+                myChart.originalAnimationDuration = myChart.options.animation.duration;
+                // Desactivamos la animación
+                myChart.options.animation.duration = 0;
                 myChart.update();
             }
-        }
+        });
+
+        window.addEventListener('afterprint', () => {
+            if (myChart && myChart.originalAnimationDuration !== undefined) {
+                // Restauramos la duración de la animación
+                myChart.options.animation.duration = myChart.originalAnimationDuration;
+                myChart.update();
+            }
+        });
 
         window.onload = () => {
             renderRubric();
