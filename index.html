@@ -187,6 +187,7 @@
         const criteria = [
             {
                 id: 1,
+                shortTitle: "1: Reto",
                 title: "1. CONEXIÓN CON LA REALIDAD", 
                 fullTitle: "1. DISEÑO DEL RETO Y CONEXIÓN CON LA REALIDAD",
                 description: "Evalúa si la programación parte de un desafío real y si se ha diseñado explícitamente para gestionar la incertidumbre, superando el mero ejercicio académico.",
@@ -199,6 +200,7 @@
             },
             {
                 id: 2,
+                shortTitle: "2: Fases",
                 title: "2. SISTEMATIZACIÓN FASES",
                 fullTitle: "2. SISTEMATIZACIÓN DE LAS FASES",
                 description: "Evalúa si la programación respeta los tiempos de los 4 momentos clave: 1. Activación, 2. Investigación, 3. Construcción y 4. Difusión.",
@@ -211,6 +213,7 @@
             },
             {
                 id: 3,
+                shortTitle: "3: PC",
                 title: "3. PENSAMIENTO CRÍTICO",
                 fullTitle: "3. PLANIFICACIÓN DEL PENSAMIENTO CRÍTICO",
                 description: "Evalúa la profundidad cognitiva (Bloom) de las actividades: desde lo simple hasta lo complejo.",
@@ -223,6 +226,7 @@
             },
             {
                 id: 4,
+                shortTitle: "4: Prod",
                 title: "4. PRODUCTO SOCIAL",
                 fullTitle: "4. PREVISIÓN DEL PRODUCTO FINAL Y SOCIALIZACIÓN",
                 description: "Analiza la naturaleza del producto planificado y su audiencia ('¿Para quién es esto?').",
@@ -235,6 +239,7 @@
             },
             {
                 id: 5,
+                shortTitle: "5: Auto",
                 title: "5. AUTONOMÍA ALUMNO",
                 fullTitle: "5. DISEÑO DE LA AUTONOMÍA DEL ALUMNO",
                 description: "Evalúa cuánto espacio de decisión y protagonismo se cede al alumno en la planificación.",
@@ -247,6 +252,7 @@
             },
             {
                 id: 6,
+                shortTitle: "6: Coop",
                 title: "6. COOPERACIÓN EQUIPO",
                 fullTitle: "6. ESTRUCTURA DE COOPERACIÓN",
                 description: "Analiza cómo se organiza el trabajo grupal en el diseño para garantizar la Interdependencia Positiva.",
@@ -259,6 +265,7 @@
             },
             {
                 id: 7,
+                shortTitle: "7: Rol",
                 title: "7. ROL DOCENTE GUÍA",
                 fullTitle: "7. DEFINICIÓN DEL ROL DOCENTE",
                 description: "Evalúa la función del profesorado implícita en las actividades diseñadas.",
@@ -271,6 +278,7 @@
             },
             {
                 id: 8,
+                shortTitle: "8: Ev",
                 title: "8. EVALUACIÓN FORMATIVA",
                 fullTitle: "8. PLAN DE EVALUACIÓN FORMATIVA",
                 description: "Analiza los instrumentos programados y si el error se usa para aprender.",
@@ -283,6 +291,7 @@
             },
             {
                 id: 9,
+                shortTitle: "9: Curr",
                 title: "9. INTEGRACIÓN CURRICULAR",
                 fullTitle: "9. INTEGRACIÓN CURRICULAR (INTERDISCIPLINARIDAD)",
                 description: "Evalúa la conexión entre materias prevista en el diseño.",
@@ -295,6 +304,7 @@
             },
             {
                 id: 10,
+                shortTitle: "10: Tec",
                 title: "10. TECNOLOGÍA PEDAGÓGICA",
                 fullTitle: "10. PREVISIÓN DE TECNOLOGÍA Y HERRAMIENTAS",
                 description: "Analiza el propósito pedagógico de las herramientas seleccionadas.",
@@ -387,8 +397,8 @@
 
         function initChart() {
             const ctx = document.getElementById('dianaChart').getContext('2d');
-            // Usar solo los números para los bordes de la diana y evitar que se corten los textos
-            const labels = criteria.map(c => c.id.toString());
+            // Usar las etiquetas abreviadas para los bordes de la diana
+            const labels = criteria.map(c => c.shortTitle);
             const data = new Array(10).fill(0);
 
             myChart = new Chart(ctx, {
